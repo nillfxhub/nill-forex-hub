@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qalb-e-Deen — Admin Panel</title>
+<style>
+:root{--bg:#071c16;--card:#0d2920;--card2:#12352a;--gold:#d9b45b;--text:#f4f1e7;--muted:#aebdb6;--danger:#d95c5c;--border:#25473b}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#061710,#0a241b);color:var(--text);font-family:Arial,sans-serif}
+.container{max-width:1100px;margin:auto;padding:24px}.brand{color:var(--gold);font-size:28px;font-weight:800;margin-bottom:4px}.sub{color:var(--muted);margin-bottom:22px}
+.card{background:rgba(13,41,32,.96);border:1px solid var(--border);border-radius:18px;padding:22px;margin-bottom:20px;box-shadow:0 12px 35px #0004}
+h2{margin-top:0;color:var(--gold)}label{display:block;margin:14px 0 7px;font-weight:700}
+input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:#071b15;color:var(--text);outline:none}
+textarea{min-height:180px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+button{border:0;border-radius:10px;padding:12px 17px;cursor:pointer;font-weight:700;margin:8px 6px 0 0}
+.primary{background:var(--gold);color:#102018}.secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.danger{background:var(--danger);color:white}.hidden{display:none}.status{padding:12px;border-radius:10px;margin:12px 0;background:#082219;color:var(--muted)}
+.post{border:1px solid var(--border);border-radius:14px;padding:16px;margin:12px 0;background:#0a2119}
+.post h3{margin:0 0 7px}.meta{color:var(--muted);font-size:13px}.actions{margin-top:10px}
+#loginCard{max-width:520px;margin:50px auto}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+@media(max-width:700px){.row{grid-template-columns:1fr}.topbar{align-items:flex-start;flex-direction:column}.container{padding:14px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div id="loginCard" class="card">
+  <div class="brand">Qalb-e-Deen</div>
+  <div class="sub">Admin Panel · The Heart of Deen</div>
+  <h2>Admin Login</h2>
+  <div id="loginStatus" class="status">Sign in with your admin account.</div>
+  <label>Email</label>
+  <input id="email" type="email" placeholder="Admin email">
+  <label>Password</label>
+  <input id="password" type="password" placeholder="Password">
+  <button class="primary" id="loginBtn">Login</button>
+</div>
+
+<div id="adminApp" class="hidden">
+  <div class="topbar">
+    <div>
+      <div class="brand">Qalb-e-Deen</div>
+      <div class="sub">Content Management Dashboard</div>
+    </div>
+    <button class="secondary" id="logoutBtn">Logout</button>
+  </div>
+
+  <div class="card">
+    <h2 id="formTitle">Create Article</h2>
+    <input id="editId" type="hidden">
+
+    <div class="row">
+      <div>
+        <label>Title</label>
+        <input id="title" placeholder="Article title">
+      </div>
+      <div>
+        <label>Category</label>
+        <select id="category">
+          <option>Quran</option>
+          <option>Hadith</option>
+          <option>Islamic Knowledge</option>
+          <option>Seerah</option>
+          <option>Dua & Zikr</option>
+          <option>Ramadan</option>
+          <option>News</option>
+          <option>Opinion</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Excerpt</label>
+    <textarea id="excerpt" style="min-height:100px" placeholder="Short description..."></textarea>
+
+    <label>Featured Image URL</label>
+    <input id="imageUrl" placeholder="https://...">
+
+    <label>Article Content</label>
+    <textarea id="content" placeholder="Write your article here..."></textarea>
+
+    <label>
+      <input id="published" type="checkbox" style="width:auto"> Publish this article
+    </label>
+
+    <div>
+      <button class="primary" id="saveBtn">Save Article</button>
+      <button class="secondary" id="clearBtn">Clear</button>
+    </div>
+    <div id="saveStatus" class="status hidden"></div>
+  </div>
+
+  <div class="card">
+    <h2>Articles</h2>
+    <div id="posts">Loading...</div>
+  </div>
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  query, orderBy, getDocs, getDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDQoJKty9i3BqBPehwKDemmSgXf9Oe9qo8",
+  authDomain: "qalb-e-deen-6af8e.firebaseapp.com",
+  projectId: "qalb-e-deen-6af8e",
+  storageBucket: "qalb-e-deen-6af8e.firebasestorage.app",
+  messagingSenderId: "983132945914",
+  appId: "1:983132945914:web:c4cd95d50a5259cbbdf843"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const $ = id => document.getElementById(id);
+const setStatus = (el,msg,show=true) => { el.textContent=msg; el.classList.toggle("hidden",!show); };
+
+function clearForm(){
+  $("editId").value="";
+  $("title").value="";
+  $("excerpt").value="";
+  $("imageUrl").value="";
+  $("content").value="";
+  $("published").checked=false;
+  $("formTitle").textContent="Create Article";
+  $("saveBtn").textContent="Save Article";
+}
+
+$("loginBtn").onclick = async () => {
+  const email=$("email").value.trim(), password=$("password").value;
+  if(!email || !password){setStatus($("loginStatus"),"Enter email and password.");return;}
+  setStatus($("loginStatus"),"Logging in...");
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
+  }catch(e){setStatus($("loginStatus"),"Login failed: "+e.message);}
+};
+
+$("logoutBtn").onclick = () => signOut(auth);
+$("clearBtn").onclick = clearForm;
+
+onAuthStateChanged(auth, async user => {
+  if(!user){
+    $("loginCard").classList.remove("hidden");
+    $("adminApp").classList.add("hidden");
+    return;
+  }
+
+  try{
+    const adminSnap = await getDoc(doc(db,"users",user.uid));
+    if(!adminSnap.exists() || adminSnap.data().role !== "admin"){
+      await signOut(auth);
+      setStatus($("loginStatus"),"This account does not have admin access.");
+      return;
+    }
+    $("loginCard").classList.add("hidden");
+    $("adminApp").classList.remove("hidden");
+    loadPosts();
+  }catch(e){
+    setStatus($("loginStatus"),"Admin verification failed: "+e.message);
+  }
+});
+
+$("saveBtn").onclick = async () => {
+  const user=auth.currentUser;
+  if(!user) return;
+
+  const title=$("title").value.trim();
+  const content=$("content").value.trim();
+  if(!title || !content){setStatus($("saveStatus"),"Title and article content are required.");return;}
+
+  const data={
+    title,
+    category:$("category").value,
+    excerpt:$("excerpt").value.trim(),
+    imageUrl:$("imageUrl").value.trim(),
+    content,
+    published:$("published").checked,
+    author_uid:user.uid,
+    updatedAt:serverTimestamp()
+  };
+
+  setStatus($("saveStatus"),"Saving...");
+  try{
+    const id=$("editId").value;
+    if(id){
+      await updateDoc(doc(db,"posts",id),data);
+    }else{
+      data.createdAt=serverTimestamp();
+      data.views=0;
+      await addDoc(collection(db,"posts"),data);
+    }
+    setStatus($("saveStatus"),"Article saved successfully.");
+    clearForm();
+    loadPosts();
+  }catch(e){
+    setStatus($("saveStatus"),"Save failed: "+e.message);
+  }
+};
+
+async function loadPosts(){
+  const box=$("posts");
+  box.textContent="Loading...";
+  try{
+    const q=query(collection(db,"posts"),orderBy("createdAt","desc"));
+    const snap=await getDocs(q);
+    if(snap.empty){box.innerHTML="<p class='meta'>No articles yet.</p>";return;}
+
+    box.innerHTML="";
+    snap.forEach(s=>{
+      const p=s.data();
+      const div=document.createElement("div");
+      div.className="post";
+      div.innerHTML=`
+        <h3>${escapeHtml(p.title||"Untitled")}</h3>
+        <div class="meta">${escapeHtml(p.category||"")} · ${p.published?"Published":"Draft"} · ${p.views||0} views</div>
+        <div class="actions">
+          <button class="secondary edit">Edit</button>
+          <button class="danger delete">Delete</button>
+        </div>`;
+      div.querySelector(".edit").onclick=()=>editPost(s.id,p);
+      div.querySelector(".delete").onclick=()=>removePost(s.id,p.title);
+      box.appendChild(div);
+    });
+  }catch(e){box.textContent="Could not load articles: "+e.message;}
+}
+
+function editPost(id,p){
+  $("editId").value=id;
+  $("title").value=p.title||"";
+  $("category").value=p.category||"Quran";
+  $("excerpt").value=p.excerpt||"";
+  $("imageUrl").value=p.imageUrl||"";
+  $("content").value=p.content||"";
+  $("published").checked=!!p.published;
+  $("formTitle").textContent="Edit Article";
+  $("saveBtn").textContent="Update Article";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function removePost(id,title){
+  if(!confirm(`Delete "${title||"this article"}"?`)) return;
+  try{
+    await deleteDoc(doc(db,"posts",id));
+    loadPosts();
+  }catch(e){alert("Delete failed: "+e.message);}
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+</script>
+</body>
+</html>
