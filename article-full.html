@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Article — Qalb-e-Deen</title>
+<style>
+:root{--bg:#061a13;--card:#0c2b21;--gold:#dfb957;--text:#f5f0e2;--muted:#aebdb6;--border:#285044}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#061a13,#0a241b);color:var(--text);font-family:Arial,sans-serif}
+.container{max-width:900px;margin:auto;padding:22px}.brand{font-size:28px;font-weight:800;color:var(--gold);margin-bottom:20px}.back{display:inline-block;color:var(--gold);text-decoration:none;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;box-shadow:0 15px 40px #0005}
+.category{display:inline-block;background:#183c30;color:var(--gold);padding:7px 11px;border-radius:20px;font-size:13px;font-weight:bold}
+h1{font-size:clamp(30px,5vw,52px);line-height:1.12;margin:16px 0 12px}.meta{color:var(--muted);margin-bottom:24px;font-size:14px}
+.hero{width:100%;max-height:480px;object-fit:cover;border-radius:14px;margin:5px 0 28px}.excerpt{font-size:19px;line-height:1.7;color:#d9e0dc;border-left:3px solid var(--gold);padding-left:16px;margin-bottom:28px}
+.content{font-size:18px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}.status{text-align:center;color:var(--muted);padding:50px 15px}.error{color:#f2aaaa}.views{color:var(--gold)}
+.related{margin-top:28px}
+.related h2{font-size:24px;margin:0 0 16px;color:var(--gold)}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.related-card{display:block;text-decoration:none;color:var(--text);background:#09231b;border:1px solid var(--border);border-radius:15px;overflow:hidden;transition:.2s}
+.related-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.related-img{width:100%;height:140px;object-fit:cover;background:#102f25}
+.related-body{padding:14px}
+.related-category{font-size:11px;color:var(--gold);font-weight:bold;text-transform:uppercase}
+.related-title{font-size:16px;font-weight:700;line-height:1.35;margin-top:7px}
+.related-date{font-size:12px;color:var(--muted);margin-top:9px}
+
+.share-box{margin-top:30px;padding-top:24px;border-top:1px solid var(--border)}
+.share-box h2,.comments h2{font-size:24px;margin:0 0 14px;color:var(--gold)}
+.share-buttons{display:flex;flex-wrap:wrap;gap:10px}
+.share-btn{border:1px solid var(--border);background:#102f25;color:var(--text);padding:10px 15px;border-radius:10px;cursor:pointer;font-weight:700;text-decoration:none}
+.share-btn:hover{border-color:var(--gold)}
+.comments{margin-top:30px;padding-top:24px;border-top:1px solid var(--border)}
+.comment-form{display:grid;gap:10px;margin-bottom:22px}
+.comment-input,.comment-textarea{width:100%;border:1px solid var(--border);background:#071d16;color:var(--text);border-radius:10px;padding:12px;font:inherit;outline:none}
+.comment-textarea{min-height:100px;resize:vertical}
+.comment-input:focus,.comment-textarea:focus{border-color:var(--gold)}
+.comment-submit{border:0;background:var(--gold);color:#102016;padding:11px 17px;border-radius:10px;font-weight:800;cursor:pointer}
+.comment-list{display:grid;gap:12px}
+.comment-item{background:#09231b;border:1px solid var(--border);border-radius:13px;padding:14px}
+.comment-name{font-weight:800;color:var(--gold)}
+.comment-time{font-size:12px;color:var(--muted);margin-left:8px}
+.comment-body{margin-top:7px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.comment-empty{color:var(--muted);padding:10px 0}
+.comment-note{font-size:12px;color:var(--muted)}
+@media(max-width:700px){.share-buttons{display:grid;grid-template-columns:1fr 1fr}.share-btn{text-align:center}}
+
+@media(max-width:700px){.related-grid{grid-template-columns:1fr}.related-img{height:180px}}
+</style></head>
+<body><div class="container"><div class="brand">Qalb-e-Deen</div><a class="back" href="./index.html">← Back to Home</a>
+<div id="app" class="card"><div class="status">Loading article...</div></div></div>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import{getFirestore,doc,getDoc,updateDoc,increment,collection,query,where,limit,getDocs,addDoc,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyDQoJKty9i3BqBPehwKDemmSgXf9Oe9qo8",authDomain:"qalb-e-deen-6af8e.firebaseapp.com",projectId:"qalb-e-deen-6af8e",storageBucket:"qalb-e-deen-6af8e.firebasestorage.app",messagingSenderId:"983132945914",appId:"1:983132945914:web:c4cd95d50a5259cbbdf843"};
+const db=getFirestore(initializeApp(firebaseConfig)),app=document.getElementById("app"),id=new URLSearchParams(location.search).get("id");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function date(ts){if(!ts)return"";const d=ts.toDate?ts.toDate():new Date(ts);return new Intl.DateTimeFormat("en",{year:"numeric",month:"long",day:"numeric"}).format(d)}
+async function load(){
+ if(!id){app.innerHTML='<div class="status error">Article ID is missing.</div>';return}
+ try{
+  const ref=doc(db,"posts",id),snap=await getDoc(ref);
+  if(!snap.exists()){app.innerHTML='<div class="status error">Article not found.</div>';return}
+  const p=snap.data();
+  if(p.published!==true){app.innerHTML='<div class="status error">This article is not published.</div>';return}
+  const views=Number(p.views||0)+1;
+  updateDoc(ref,{views:increment(1)}).catch(()=>{});
+  document.title=(p.title||"Article")+" — Qalb-e-Deen";
+
+  let related=[];
+  try{
+    const q=query(collection(db,"posts"),where("published","==",true),limit(30));
+    const rs=await getDocs(q);
+    const all=rs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.id!==id);
+    const same=all.filter(x=>x.category && p.category && x.category===p.category);
+    related=[...same,...all.filter(x=>!same.some(s=>s.id===x.id))].slice(0,3);
+  }catch(e){ related=[]; }
+
+  const relatedHtml=related.length?`
+    <section class="related">
+      <h2>Related Articles</h2>
+      <div class="related-grid">
+        ${related.map(r=>`
+          <a class="related-card" href="./article.html?id=${encodeURIComponent(r.id)}">
+            ${r.imageUrl?`<img class="related-img" src="${esc(r.imageUrl)}" alt="${esc(r.title||"Article")}" onerror="this.style.display='none'">`:""}
+            <div class="related-body">
+              <div class="related-category">${esc(r.category||"Article")}</div>
+              <div class="related-title">${esc(r.title||"Untitled")}</div>
+              <div class="related-date">${date(r.createdAt)}</div>
+            </div>
+          </a>`).join("")}
+      </div>
+    </section>`:"";
+
+  app.innerHTML=`<span class="category">${esc(p.category||"Article")}</span><h1>${esc(p.title||"Untitled")}</h1><div class="meta">${date(p.createdAt)} · <span class="views">${views} views</span></div>${p.imageUrl?`<img class="hero" src="${esc(p.imageUrl)}" alt="${esc(p.title||"Article image")}" onerror="this.style.display='none'">`:""}${p.excerpt?`<div class="excerpt">${esc(p.excerpt)}</div>`:""}<div class="content">${esc(p.content||"")}</div><section class="share-box">
+    <h2>Share This Article</h2>
+    <div class="share-buttons">
+      <a class="share-btn" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}">Facebook</a>
+      <a class="share-btn" target="_blank" rel="noopener" href="https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(p.title||"Qalb-e-Deen Article")}">Telegram</a>
+      <button class="share-btn" id="copyShare">Copy Link</button>
+      <button class="share-btn" id="nativeShare">Share</button>
+    </div>
+  </section>
+  <section class="comments">
+    <h2>Comments</h2>
+    <form class="comment-form" id="commentForm">
+      <input class="comment-input" id="commentName" maxlength="40" placeholder="Your name" required>
+      <textarea class="comment-textarea" id="commentText" maxlength="500" placeholder="Write a comment..." required></textarea>
+      <button class="comment-submit" type="submit">Post Comment</button>
+      <div class="comment-note">Comments are public. Please avoid sharing personal information.</div>
+    </form>
+    <div id="commentList" class="comment-list"><div class="comment-empty">Loading comments...</div></div>
+  </section>
+  ${relatedHtml}`;
+  document.getElementById("copyShare")?.addEventListener("click",async()=>{
+    try{await navigator.clipboard.writeText(location.href);document.getElementById("copyShare").textContent="Copied ✓";setTimeout(()=>document.getElementById("copyShare").textContent="Copy Link",1600)}
+    catch(e){alert("Copy failed.")}
+  });
+  document.getElementById("nativeShare")?.addEventListener("click",async()=>{
+    if(navigator.share){try{await navigator.share({title:p.title||"Qalb-e-Deen Article",url:location.href})}catch(e){}}
+    else document.getElementById("copyShare")?.click();
+  });
+
+  const commentList=document.getElementById("commentList");
+  async function loadComments(){
+    try{
+      const cq=query(collection(db,"posts",id,"comments"),orderBy("createdAt","desc"),limit(30));
+      const cs=await getDocs(cq);
+      if(cs.empty){commentList.innerHTML='<div class="comment-empty">No comments yet. Be the first to comment.</div>';return}
+      commentList.innerHTML=cs.docs.map(d=>{
+        const c=d.data();
+        return `<div class="comment-item"><span class="comment-name">${esc(c.name||"Anonymous")}</span><span class="comment-time">${date(c.createdAt)}</span><div class="comment-body">${esc(c.text||"")}</div></div>`;
+      }).join("");
+    }catch(e){commentList.innerHTML='<div class="comment-empty">Comments are temporarily unavailable.</div>'}
+  }
+  document.getElementById("commentForm")?.addEventListener("submit",async ev=>{
+    ev.preventDefault();
+    const name=document.getElementById("commentName").value.trim();
+    const text=document.getElementById("commentText").value.trim();
+    if(!name||!text)return;
+    const btn=ev.target.querySelector("button[type=submit]");
+    btn.disabled=true;btn.textContent="Posting...";
+    try{
+      await addDoc(collection(db,"posts",id,"comments"),{name,text,createdAt:serverTimestamp()});
+      ev.target.reset();await loadComments();
+    }catch(e){alert("Comment post করা যাচ্ছে না। Firestore Rules check করুন.")}
+    finally{btn.disabled=false;btn.textContent="Post Comment"}
+  });
+  loadComments();
+
+ }catch(e){app.innerHTML='<div class="status error">Could not load article: '+esc(e.code||e.message||"Unknown error")+'</div>'}
+}
+load();
+</script></body></html>
