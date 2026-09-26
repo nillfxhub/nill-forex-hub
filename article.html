@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Article — Qalb-e-Deen</title>
+<style>
+:root{--bg:#061a13;--card:#0c2b21;--gold:#dfb957;--text:#f5f0e2;--muted:#aebdb6;--border:#285044}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#061a13,#0a241b);color:var(--text);font-family:Arial,sans-serif}
+.container{max-width:900px;margin:auto;padding:22px}.brand{font-size:28px;font-weight:800;color:var(--gold);margin-bottom:20px}.back{display:inline-block;color:var(--gold);text-decoration:none;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;box-shadow:0 15px 40px #0005}
+.category{display:inline-block;background:#183c30;color:var(--gold);padding:7px 11px;border-radius:20px;font-size:13px;font-weight:bold}
+h1{font-size:clamp(30px,5vw,52px);line-height:1.12;margin:16px 0 12px}.meta{color:var(--muted);margin-bottom:24px;font-size:14px}
+.hero{width:100%;max-height:480px;object-fit:cover;border-radius:14px;margin:5px 0 28px}.excerpt{font-size:19px;line-height:1.7;color:#d9e0dc;border-left:3px solid var(--gold);padding-left:16px;margin-bottom:28px}
+.content{font-size:18px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}.status{text-align:center;color:var(--muted);padding:50px 15px}.error{color:#f2aaaa}.views{color:var(--gold)}
+</style></head>
+<body><div class="container"><div class="brand">Qalb-e-Deen</div><a class="back" href="./index.html">← Back to Home</a>
+<div id="app" class="card"><div class="status">Loading article...</div></div></div>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import{getFirestore,doc,getDoc,updateDoc,increment}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyDQoJKty9i3BqBPehwKDemmSgXf9Oe9qo8",authDomain:"qalb-e-deen-6af8e.firebaseapp.com",projectId:"qalb-e-deen-6af8e",storageBucket:"qalb-e-deen-6af8e.firebasestorage.app",messagingSenderId:"983132945914",appId:"1:983132945914:web:c4cd95d50a5259cbbdf843"};
+const db=getFirestore(initializeApp(firebaseConfig)),app=document.getElementById("app"),id=new URLSearchParams(location.search).get("id");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function date(ts){if(!ts)return"";const d=ts.toDate?ts.toDate():new Date(ts);return new Intl.DateTimeFormat("en",{year:"numeric",month:"long",day:"numeric"}).format(d)}
+async function load(){
+ if(!id){app.innerHTML='<div class="status error">Article ID is missing.</div>';return}
+ try{
+  const ref=doc(db,"posts",id),snap=await getDoc(ref);
+  if(!snap.exists()){app.innerHTML='<div class="status error">Article not found.</div>';return}
+  const p=snap.data();
+  if(p.published!==true){app.innerHTML='<div class="status error">This article is not published.</div>';return}
+  const views=Number(p.views||0)+1;
+  updateDoc(ref,{views:increment(1)}).catch(()=>{});
+  document.title=(p.title||"Article")+" — Qalb-e-Deen";
+  app.innerHTML=`<span class="category">${esc(p.category||"Article")}</span><h1>${esc(p.title||"Untitled")}</h1><div class="meta">${date(p.createdAt)} · <span class="views">${views} views</span></div>${p.imageUrl?`<img class="hero" src="${esc(p.imageUrl)}" alt="${esc(p.title||"Article image")}" onerror="this.style.display='none'">`:""}${p.excerpt?`<div class="excerpt">${esc(p.excerpt)}</div>`:""}<div class="content">${esc(p.content||"")}</div>`;
+ }catch(e){app.innerHTML='<div class="status error">Could not load article: '+esc(e.code||e.message||"Unknown error")+'</div>'}
+}
+load();
+</script></body></html>
