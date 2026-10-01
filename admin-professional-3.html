@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qalb-e-Deen — Admin Dashboard</title>
+<style>
+:root{--bg:#061811;--panel:#0b251c;--panel2:#0e3024;--gold:#dfb957;--text:#f5f0e2;--muted:#aebdb6;--border:#285044;--red:#d45b5b;--green:#63c18b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#123b2d 0,#061811 42%,#04120d 100%);color:var(--text);font-family:Inter,Arial,sans-serif}
+button,input,textarea,select{font:inherit}.hidden{display:none!important}.shell{max-width:1400px;margin:auto;padding:20px}
+.login{max-width:460px;margin:8vh auto}.card{background:rgba(11,37,28,.94);border:1px solid var(--border);border-radius:22px;padding:24px;box-shadow:0 20px 60px #0007}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#dfb957,#8c6c1e);display:grid;place-items:center;color:#102018;font-weight:900}.brand h1{margin:0;color:var(--gold);font-size:24px}.muted{color:var(--muted)}
+label{display:block;margin:15px 0 7px;font-weight:700}input,textarea,select{width:100%;padding:12px 13px;border:1px solid #31584b;border-radius:11px;background:#061b14;color:#fff;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--gold)}textarea{resize:vertical}
+.btn{border:0;border-radius:11px;padding:11px 15px;background:var(--gold);color:#102018;font-weight:800;cursor:pointer}.btn:hover{filter:brightness(1.05)}.btn.secondary{background:#173c2f;color:#fff}.btn.danger{background:var(--red);color:#fff}.btn.small{padding:8px 11px;font-size:13px}.btn:disabled{opacity:.5;cursor:not-allowed}
+.status{margin-top:14px;padding:11px 13px;border-radius:11px;background:#092219;color:#cbd8d2;white-space:pre-wrap}.error{color:#ffb0b0}.success{color:#9ee1b7}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat{background:linear-gradient(145deg,#0e3024,#092219);border:1px solid var(--border);border-radius:18px;padding:18px}.stat .n{font-size:30px;font-weight:900;color:var(--gold);margin-top:7px}
+.grid{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 15px}.section-title h2{margin:0;color:var(--gold);font-size:20px}
+.preview{width:100%;height:190px;object-fit:cover;border-radius:14px;border:1px solid var(--border);margin-top:10px}.drop{border:1px dashed #56796c;padding:15px;border-radius:13px;text-align:center;margin-top:10px;color:var(--muted)}.drop input{border:0;background:transparent}
+.progress{height:8px;background:#06130e;border-radius:10px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--gold);transition:width .2s}
+.post{border:1px solid var(--border);border-radius:15px;padding:15px;margin:11px 0;background:#092219}.posthead{display:flex;justify-content:space-between;gap:12px}.post h3{margin:0 0 7px}.badge{display:inline-block;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:800}.published{background:#173f2d;color:#8ee0ad}.draft{background:#3c3420;color:#e9cc76}.postmeta{font-size:13px;color:var(--muted);margin:5px 0 10px}.postimg{width:110px;height:72px;object-fit:cover;border-radius:9px;float:right;margin-left:12px}.postactions{display:flex;gap:7px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;margin-bottom:15px}.tab{background:#12372b;color:#dce7e1;border:1px solid var(--border);padding:9px 13px;border-radius:10px;cursor:pointer}.tab.active{background:var(--gold);color:#102018}
+.comment{border:1px solid var(--border);border-radius:13px;padding:13px;margin:10px 0;background:#092219}.commenttop{display:flex;justify-content:space-between;gap:10px}.commentname{font-weight:800;color:#e9d28a}.commenttext{margin:8px 0;line-height:1.6;white-space:pre-wrap}.commentmeta{font-size:12px;color:var(--muted)}
+.empty{text-align:center;padding:35px;color:var(--muted)}.check{display:flex;align-items:center;gap:8px;margin-top:14px}.check input{width:auto}
+@media(max-width:950px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.shell{padding:12px}.stats{grid-template-columns:1fr 1fr}.topbar{align-items:flex-start;flex-direction:column}.card{padding:17px}.posthead{display:block}}
+</style>
+</head>
+<body>
+<div id="loginView" class="login card">
+  <div class="brand"><div class="logo">QD</div><div><h1>Qalb-e-Deen</h1><div class="muted">Admin Dashboard</div></div></div>
+  <h2 style="margin-top:25px">Secure Login</h2>
+  <label>Email</label><input id="email" type="email" autocomplete="username">
+  <label>Password</label><input id="password" type="password" autocomplete="current-password">
+  <button class="btn" id="loginBtn" style="width:100%;margin-top:18px">Login</button>
+  <div id="loginStatus" class="status">Use your Firebase Admin email and password.</div>
+</div>
+
+<div id="app" class="shell hidden">
+  <div class="topbar">
+    <div class="brand"><div class="logo">QD</div><div><h1>Qalb-e-Deen</h1><div class="muted">Content Management Dashboard</div></div></div>
+    <div class="actions"><a class="btn secondary" href="./index.html" target="_blank">View Site</a><button class="btn secondary" id="refreshBtn">Refresh</button><button class="btn danger" id="logoutBtn">Logout</button></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="muted">Total Articles</div><div class="n" id="statArticles">0</div></div>
+    <div class="stat"><div class="muted">Published</div><div class="n" id="statPublished">0</div></div>
+    <div class="stat"><div class="muted">Total Views</div><div class="n" id="statViews">0</div></div>
+    <div class="stat"><div class="muted">Comments</div><div class="n" id="statComments">0</div></div>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="section-title"><h2 id="formTitle">Create Article</h2><button class="btn secondary small hidden" id="cancelEdit">Cancel Edit</button></div>
+      <input id="postId" type="hidden">
+      <label>Title</label><input id="title" placeholder="Article title">
+      <label>Category</label>
+      <select id="category"><option>Quran</option><option>Hadith</option><option>Islamic Knowledge</option><option>Seerah</option><option>Dua & Zikr</option><option>Ramadan</option><option>News</option><option>Opinion</option></select>
+      <label>Excerpt</label><textarea id="excerpt" rows="3" placeholder="Short summary"></textarea>
+      <label>Featured Image</label>
+      <input id="imageUrl" placeholder="Image URL (optional)">
+      <div class="drop"><div>Paste a public image URL below. Firebase Storage is not required.</div></div>
+      <img id="preview" class="preview hidden" alt="Image Preview">
+      <label>Content</label><textarea id="content" rows="13" placeholder="Write your article..."></textarea>
+      <label class="check"><input id="published" type="checkbox"> Publish this article</label>
+      <div class="actions" style="margin-top:16px"><button class="btn" id="saveBtn">Save Article</button><button class="btn secondary" id="clearBtn">Clear</button></div>
+      <div id="saveStatus" class="status hidden"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title"><h2>Articles</h2><input id="searchPosts" style="max-width:230px" placeholder="Search articles"></div>
+      <div id="posts">Loading...</div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:20px">
+    <div class="section-title"><h2>Comment Moderation</h2><button class="btn secondary small" id="refreshComments">Refresh Comments</button></div>
+    <div id="comments">Loading comments...</div>
+  </section>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import{getFirestore,collection,doc,getDoc,getDocs,query,orderBy,addDoc,updateDoc,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig={apiKey:"AIzaSyDQoJKty9i3BqBPehwKDemmSgXf9Oe9qo8",authDomain:"qalb-e-deen-6af8e.firebaseapp.com",projectId:"qalb-e-deen-6af8e",storageBucket:"qalb-e-deen-6af8e.firebasestorage.app",messagingSenderId:"983132945914",appId:"1:983132945914:web:c4cd95d50a5259cbbdf843"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let posts=[],comments=[];
+
+function status(el,msg,type=""){el.className="status "+type;el.textContent=msg;el.classList.remove("hidden")}
+function hide(el){el.classList.add("hidden")}
+function date(ts){if(!ts)return"";const d=ts.toDate?ts.toDate():new Date(ts);return new Intl.DateTimeFormat("en",{year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}).format(d)}
+
+$("loginBtn").onclick=async()=>{try{status($("loginStatus"),"Signing in...");await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);status($("loginStatus"),"Login successful.","success")}catch(e){status($("loginStatus"),e.code||e.message,"error")}};
+$("logoutBtn").onclick=()=>signOut(auth);
+$("refreshBtn").onclick=loadDashboard;
+$("refreshComments").onclick=loadComments;
+$("searchPosts").oninput=renderPosts;
+$("cancelEdit").onclick=$("clearBtn").onclick=clearForm;
+$("imageUrl").oninput=()=>{if($("imageUrl").value.trim()){ $("preview").src=$("imageUrl").value.trim();$("preview").classList.remove("hidden")}};
+
+onAuthStateChanged(auth,async user=>{
+ if(!user){$("app").classList.add("hidden");$("loginView").classList.remove("hidden");return}
+ const u=await getDoc(doc(db,"users",user.uid));
+ if(!u.exists()||u.data().role!=="admin"){await signOut(auth);status($("loginStatus"),"This account is not an admin.","error");return}
+ $("loginView").classList.add("hidden");$("app").classList.remove("hidden");loadDashboard();
+});
+
+async function loadDashboard(){await loadPosts();await loadComments();updateStats()}
+async function loadPosts(){
+ try{const snap=await getDocs(query(collection(db,"posts"),orderBy("createdAt","desc")));posts=snap.docs.map(d=>({id:d.id,...d.data()}));renderPosts();updateStats()}
+ catch(e){$("posts").innerHTML='<div class="empty">Could not load articles: '+esc(e.message)+'</div>'}
+}
+function renderPosts(){
+ const term=$("searchPosts").value.trim().toLowerCase();
+ const list=posts.filter(p=>(p.title||"").toLowerCase().includes(term)||(p.category||"").toLowerCase().includes(term));
+ if(!list.length){$("posts").innerHTML='<div class="empty">No articles found.</div>';return}
+ $("posts").innerHTML=list.map(p=>`<div class="post"><div class="posthead">${p.imageUrl?`<img class="postimg" src="${esc(p.imageUrl)}" onerror="this.style.display='none'">`:""}<div><h3>${esc(p.title||"Untitled")}</h3><div class="postmeta">${esc(p.category||"Article")} · ${date(p.createdAt)||"No date"} · ${Number(p.views||0).toLocaleString()} views</div><span class="badge ${p.published?"published":"draft"}">${p.published?"PUBLISHED":"DRAFT"}</span></div></div><div class="postactions" style="margin-top:12px"><button class="btn small" data-edit="${p.id}">Edit</button><button class="btn small danger" data-delete="${p.id}">Delete</button>${p.published?`<a class="btn small secondary" href="./article.html?id=${encodeURIComponent(p.id)}" target="_blank">Open</a>`:""}</div></div>`).join("");
+ document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editPost(b.dataset.edit));
+ document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>removePost(b.dataset.delete));
+}
+async function editPost(id){
+ const p=posts.find(x=>x.id===id);if(!p)return;
+ $("postId").value=id;$("title").value=p.title||"";$("category").value=p.category||"Quran";$("excerpt").value=p.excerpt||"";$("imageUrl").value=p.imageUrl||"";$("content").value=p.content||"";$("published").checked=!!p.published;
+ $("formTitle").textContent="Edit Article";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"});
+ if(p.imageUrl){$("preview").src=p.imageUrl;$("preview").classList.remove("hidden")}else $("preview").classList.add("hidden");
+}
+function clearForm(){["postId","title","excerpt","imageUrl","content"].forEach(id=>$(id).value="");$("category").value="Quran";$("published").checked=false;$("formTitle").textContent="Create Article";$("cancelEdit").classList.add("hidden");$("preview").classList.add("hidden");hide($("saveStatus"))}
+async function removePost(id){
+ const p=posts.find(x=>x.id===id);if(!p||!confirm(`Delete "${p.title||"this article"}"?`))return;
+ try{await deleteDoc(doc(db,"posts",id));await loadPosts();await loadComments();updateStats()}catch(e){alert(e.message)}
+}
+$("saveBtn").onclick=async()=>{
+ const title=$("title").value.trim(),content=$("content").value.trim(),id=$("postId").value;
+ if(!title||!content){status($("saveStatus"),"Title and content are required.","error");return}
+ const data={title,category:$("category").value,excerpt:$("excerpt").value.trim(),imageUrl:$("imageUrl").value.trim(),content,published:$("published").checked,updatedAt:serverTimestamp()};
+ $("saveBtn").disabled=true;
+ try{
+  if(id){await updateDoc(doc(db,"posts",id),data);status($("saveStatus"),"Article updated successfully.","success")}
+  else{data.author_uid=auth.currentUser.uid;data.views=0;data.createdAt=serverTimestamp();await addDoc(collection(db,"posts"),data);status($("saveStatus"),"Article created successfully.","success")}
+  clearForm();await loadPosts();updateStats();
+ }catch(e){status($("saveStatus"),e.code||e.message,"error")}finally{$("saveBtn").disabled=false}
+};
+
+async function loadComments(){
+ try{
+  const all=[];
+  for(const p of posts){
+   const snap=await getDocs(query(collection(db,"posts",p.id,"comments"),orderBy("createdAt","desc")));
+   snap.forEach(d=>all.push({id:d.id,postId:p.id,postTitle:p.title||"Untitled",...d.data()}));
+  }
+  comments=all;renderComments();updateStats();
+ }catch(e){$("comments").innerHTML='<div class="empty">Could not load comments: '+esc(e.message)+'</div>'}
+}
+function renderComments(){
+ if(!comments.length){$("comments").innerHTML='<div class="empty">No comments yet.</div>';return}
+ $("comments").innerHTML=comments.map(c=>`<div class="comment"><div class="commenttop"><div><span class="commentname">${esc(c.name||"Anonymous")}</span><div class="commentmeta">${date(c.createdAt)||"No date"} · Article: ${esc(c.postTitle)}</div></div><button class="btn small danger" data-comment-delete="${c.postId}|${c.id}">Delete</button></div><div class="commenttext">${esc(c.text||"")}</div></div>`).join("");
+ document.querySelectorAll("[data-comment-delete]").forEach(b=>b.onclick=()=>deleteComment(...b.dataset.commentDelete.split("|")));
+}
+async function deleteComment(postId,commentId){
+ if(!confirm("Delete this comment?"))return;
+ try{await deleteDoc(doc(db,"posts",postId,"comments",commentId));await loadComments();updateStats()}catch(e){alert(e.message)}
+}
+function updateStats(){
+ $("statArticles").textContent=posts.length.toLocaleString();
+ $("statPublished").textContent=posts.filter(p=>p.published).length.toLocaleString();
+ $("statViews").textContent=posts.reduce((a,p)=>a+Number(p.views||0),0).toLocaleString();
+ $("statComments").textContent=comments.length.toLocaleString();
+}
+</script>
+</body></html>
