@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Profile — Qalb-e-Deen</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef3ee;color:#17372e;font-family:Arial,sans-serif}
+header{background:#042820;color:white;padding:18px;text-align:center;border-bottom:3px solid #d7b45a}
+header a{color:#f1d17a;text-decoration:none;font-size:23px;font-weight:bold}
+main{max-width:480px;margin:35px auto;padding:16px}
+.card{background:white;border-radius:18px;padding:25px;box-shadow:0 8px 28px #0001;text-align:center}
+img{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid #d7b45a;background:#eee}
+h2{color:#07513c}
+p{overflow-wrap:anywhere;color:#53665c}
+button{padding:12px 18px;border:0;border-radius:8px;background:#07513c;color:white;font-weight:bold;cursor:pointer;margin:6px}
+.secondary{background:#d7b45a;color:#17372e}
+#message{font-size:14px}
+</style>
+</head>
+<body>
+<header><a href="./index.html">Qalb-e-Deen</a></header>
+<main>
+<div class="card">
+<img id="photo" alt="Profile photo"
+src="https://www.gravatar.com/avatar/?d=mp&s=220">
+<h2 id="name">Loading profile...</h2>
+<p id="email"></p>
+<p id="joined"></p>
+<p id="message">Please wait...</p>
+<button id="edit">Edit Profile</button>
+<button id="logout" class="secondary">Logout</button>
+</div>
+</main>
+
+<script type="module">
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut,updateProfile}
+from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDQoJKty9i3BqBPehwKDemmSgXf9Oe9qo8",
+  authDomain: "qalb-e-deen-6af8e.firebaseapp.com",
+  projectId: "qalb-e-deen-6af8e",
+  storageBucket: "qalb-e-deen-6af8e.firebasestorage.app",
+  messagingSenderId: "983132945914",
+  appId: "1:983132945914:web:c4cd95d50a5259cbbdf843"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const $=id=>document.getElementById(id);
+let currentUser=null;
+
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    location.replace("./login.html");
+    return;
+  }
+  currentUser=user;
+  $("name").textContent=user.displayName || "Qalb-e-Deen Member";
+  $("email").textContent=user.email || "";
+  $("photo").src=user.photoURL ||
+    "https://www.gravatar.com/avatar/?d=mp&s=220";
+  $("joined").textContent=user.metadata.creationTime
+    ? "Joined: "+new Date(user.metadata.creationTime).toLocaleDateString()
+    : "";
+  $("message").textContent="Your profile is ready.";
+});
+
+$("edit").addEventListener("click",async()=>{
+  if(!currentUser)return;
+  const name=prompt("Enter your display name:",currentUser.displayName||"");
+  if(name===null)return;
+  const photo=prompt("Enter a public photo URL (or leave blank):",currentUser.photoURL||"");
+  if(photo===null)return;
+  try{
+    const updates={displayName:name.trim()};
+    if(photo.trim())updates.photoURL=photo.trim();
+    else updates.photoURL=null;
+    await updateProfile(currentUser,updates);
+    $("name").textContent=currentUser.displayName||"Qalb-e-Deen Member";
+    $("photo").src=currentUser.photoURL||
+      "https://www.gravatar.com/avatar/?d=mp&s=220";
+    $("message").textContent="Profile updated successfully.";
+  }catch(error){
+    $("message").textContent="Could not update profile: "+error.message;
+  }
+});
+
+$("logout").addEventListener("click",async()=>{
+  await signOut(auth);
+  location.href="./login.html";
+});
+</script>
+</body>
+  </html>
+  
