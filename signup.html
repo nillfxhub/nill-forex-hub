@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign Up — Qalb-e-Deen</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;background:#eef3ee;color:#17372e;min-height:100vh;display:grid;place-items:center;padding:20px}
+    .card{width:100%;max-width:430px;background:white;padding:28px;border-radius:18px;box-shadow:0 10px 35px #0001}
+    h1{text-align:center;color:#07513c}
+    .sub{text-align:center;color:#66766e}
+    label{display:block;margin:15px 0 7px;font-weight:bold}
+    input{width:100%;padding:13px;border:1px solid #ccd8d0;border-radius:9px;font-size:15px}
+    button{width:100%;padding:14px;margin-top:20px;background:#07513c;color:white;border:0;border-radius:9px;font-size:16px;font-weight:bold}
+    button:disabled{opacity:.6}
+    a{color:#08734e}
+    .bottom{text-align:center;margin-top:20px}
+    #message{margin-top:14px;font-size:14px;overflow-wrap:anywhere}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Qalb-e-Deen</h1>
+  <p class="sub">Create Your Account</p>
+
+  <form id="signupForm">
+    <label for="name">Your Name</label>
+    <input id="name" type="text" required maxlength="60"
+           autocomplete="name" placeholder="Enter your name">
+
+    <label for="email">Email Address</label>
+    <input id="email" type="email" required
+           autocomplete="email" placeholder="name@example.com">
+
+    <label for="password">Password</label>
+    <input id="password" type="password" required minlength="6"
+           autocomplete="new-password" placeholder="At least 6 characters">
+
+    <label for="photoURL">Profile Photo URL (Optional)</label>
+    <input id="photoURL" type="url"
+           placeholder="https://example.com/photo.jpg">
+
+    <button id="signupBtn" type="submit">Create Account</button>
+  </form>
+
+  <p class="bottom">
+    Already have an account?
+    <a href="./login.html">Login</a>
+  </p>
+  <p id="message" role="status" aria-live="polite"></p>
+</div>
+
+<script type="module">
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
+import {
+  getAuth, createUserWithEmailAndPassword, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+import {
+  getFirestore, doc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDQoJKty9i3BqBPehwKDemmSgXf9Oe9qo8",
+  authDomain: "qalb-e-deen-6af8e.firebaseapp.com",
+  projectId: "qalb-e-deen-6af8e",
+  storageBucket: "qalb-e-deen-6af8e.firebasestorage.app",
+  messagingSenderId: "983132945914",
+  appId: "1:983132945914:web:c4cd95d50a5259cbbdf843"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const form = document.getElementById("signupForm");
+const button = document.getElementById("signupBtn");
+const message = document.getElementById("message");
+
+function showMessage(text, success = false) {
+  message.textContent = text;
+  message.style.color = success ? "green" : "crimson";
+}
+
+function errorText(error) {
+  const errors = {
+    "auth/email-already-in-use": "This email is already registered. Please log in.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/weak-password": "Password must be at least 6 characters.",
+    "auth/operation-not-allowed": "Enable Email/Password in Firebase Authentication.",
+    "auth/network-request-failed": "Check your internet connection."
+  };
+  return errors[error.code] ||
+    `Error: ${error.message || error.code || "Unknown error"}`;
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  button.disabled = true;
+  button.textContent = "Creating Account...";
+
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const photoURL = document.getElementById("photoURL").value.trim();
+
+  try {
+    const result = await createUserWithEmailAndPassword(
+      auth, email, password
+    );
+
+    try {
+      await updateProfile(result.user, {
+        displayName: name,
+        ...(photoURL ? { photoURL } : {})
+      });
+    } catch (profileError) {
+      console.error("Profile update failed:", profileError);
+    }
+
+    // Saving a public profile is optional; signup itself can still succeed
+    // if Firestore rules deny this write.
+    try {
+      await setDoc(doc(db, "users", result.user.uid), {
+        uid: result.user.uid,
+        name: name,
+        email: email,
+        photoURL: photoURL,
+        role: "user",
+        createdAt: serverTimestamp()
+      });
+    } catch (profileError) {
+      console.warn("Profile document not saved:", profileError);
+    }
+
+    showMessage("Account created successfully!", true);
+    setTimeout(() => {
+      window.location.href = "./index.html";
+    }, 800);
+
+  } catch (error) {
+    showMessage(errorText(error));
+  } finally {
+    button.disabled = false;
+    button.textContent = "Create Account";
+  }
+});
+</script>
+</body>
+</html>
