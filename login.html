@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — Qalb-e-Deen</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;background:#eef3ee;color:#17372e;min-height:100vh;display:grid;place-items:center;padding:20px}
+    .card{width:100%;max-width:430px;background:white;padding:28px;border-radius:18px;box-shadow:0 10px 35px #0001}
+    h1{text-align:center;color:#07513c}
+    .sub{text-align:center;color:#66766e}
+    label{display:block;margin:15px 0 7px;font-weight:bold}
+    input{width:100%;padding:13px;border:1px solid #ccd8d0;border-radius:9px;font-size:15px}
+    button{width:100%;padding:14px;margin-top:20px;background:#07513c;color:white;border:0;border-radius:9px;font-size:16px;font-weight:bold}
+    button:disabled{opacity:.6}
+    a{color:#08734e}
+    .bottom{text-align:center;margin-top:20px}
+    .forgot{text-align:right;margin-top:12px;font-size:14px}
+    #message{margin-top:14px;font-size:14px;overflow-wrap:anywhere}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Qalb-e-Deen</h1>
+  <p class="sub">Welcome Back</p>
+
+  <form id="loginForm">
+    <label for="email">Email Address</label>
+    <input id="email" type="email" required
+           autocomplete="email" placeholder="name@example.com">
+
+    <label for="password">Password</label>
+    <input id="password" type="password" required
+           autocomplete="current-password" placeholder="Your password">
+
+    <button id="loginBtn" type="submit">Login</button>
+  </form>
+
+  <p class="forgot">
+    <a href="#" id="resetLink">Forgot Password?</a>
+  </p>
+
+  <p class="bottom">
+    Don't have an account?
+    <a href="./signup.html">Sign Up</a>
+  </p>
+
+  <p id="message" role="status" aria-live="polite"></p>
+</div>
+
+<script type="module">
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
+import {
+  getAuth, signInWithEmailAndPassword, sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDQoJKty9i3BqBPehwKDemmSgXf9Oe9qo8",
+  authDomain: "qalb-e-deen-6af8e.firebaseapp.com",
+  projectId: "qalb-e-deen-6af8e",
+  storageBucket: "qalb-e-deen-6af8e.firebasestorage.app",
+  messagingSenderId: "983132945914",
+  appId: "1:983132945914:web:c4cd95d50a5259cbbdf843"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const form = document.getElementById("loginForm");
+const button = document.getElementById("loginBtn");
+const message = document.getElementById("message");
+
+function showMessage(text, success = false) {
+  message.textContent = text;
+  message.style.color = success ? "green" : "crimson";
+}
+
+function errorText(error) {
+  const errors = {
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/invalid-credential": "Incorrect email or password.",
+    "auth/user-not-found": "No account found for this email.",
+    "auth/wrong-password": "Incorrect password.",
+    "auth/too-many-requests": "Too many attempts. Try again later.",
+    "auth/network-request-failed": "Check your internet connection.",
+    "auth/operation-not-allowed": "Enable Email/Password in Firebase Authentication."
+  };
+  return errors[error.code] ||
+    `Error: ${error.message || error.code || "Unknown error"}`;
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  button.disabled = true;
+  button.textContent = "Logging in...";
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    showMessage("Login successful! Redirecting...", true);
+    setTimeout(() => {
+      window.location.href = "./index.html";
+    }, 700);
+  } catch (error) {
+    showMessage(errorText(error));
+  } finally {
+    button.disabled = false;
+    button.textContent = "Login";
+  }
+});
+
+document.getElementById("resetLink").addEventListener("click", async (event) => {
+  event.preventDefault();
+  const email = document.getElementById("email").value.trim();
+
+  if (!email) {
+    showMessage("Enter your email address first.");
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showMessage("Password reset instructions have been sent to your email.", true);
+  } catch (error) {
+    showMessage(errorText(error));
+  }
+});
+</script>
+</body>
+</html>
